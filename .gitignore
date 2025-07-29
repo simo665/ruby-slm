@@ -1,0 +1,12 @@
+*.npy
+*.txt
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.pth
+*.db
+*.sqlite3
+.git/
