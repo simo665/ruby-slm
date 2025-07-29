@@ -6,7 +6,7 @@ import torch.nn.functional as F
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 vocab_size = 50000  # same as training
 model = RubyMini(vocab_size).to(device)
-model.load_state_dict(torch.load("weight_data/ruby_mini3_epoch_3.pth", map_location=device))
+model.load_state_dict(torch.load("weight_data/ruby_mini4_epoch_1.pth", map_location=device))
 model.eval()
 
 def top_k_logits(logits, k):
@@ -59,8 +59,18 @@ def generate_text(model, start_tokens, max_length=100, top_k=50, top_p=1.0, temp
         # Use last 128 tokens as context (or whatever your model's max context is)
         input_ids = torch.tensor([generated[-128:]], dtype=torch.long).to(device)
         
+        # Check if input is empty
+        if input_ids.size(1) == 0:
+            print("Error: Empty input sequence")
+            return generated
+            
         with torch.no_grad():
             logits = model(input_ids)  # [batch, seq_len, vocab_size]
+            
+        # Check if logits are empty
+        if logits.size(1) == 0:
+            print("Error: Model produced empty logits")
+            return generated
         
         # Get logits for the last token and apply temperature
         last_token_logits = logits[0, -1] / temperature
@@ -97,6 +107,11 @@ if __name__ == "__main__":
         
         start_tokens = tokenization.text_to_ids(start_text)
         
+        # Check if we have valid tokens
+        if not start_tokens:
+            print("Error: Could not tokenize input text")
+            continue
+            
         generated_ids = generate_text(
             model, 
             start_tokens, 
