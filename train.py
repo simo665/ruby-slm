@@ -7,6 +7,7 @@ import time
 from tqdm import tqdm  # <--- for progress bars
 from model import RubyMini
 import os
+from utils import tokenization
 
 class TokenDataset(Dataset):
     def __init__(self, inputs, targets):
@@ -24,9 +25,9 @@ def load_training_data(file_path: str = "dataset/dataset.npy"):
 
 def get_inputs_targets():
     data = load_training_data()
-    print("🔎 Max token ID in dataset:", )
+    print("🔎 Max token ID in dataset:", data.max())
     # print data max token length
-    seq_length = 128
+    seq_length = 512
     inputs, targets = [], []
 
     for i in range(0, len(data) - seq_length):
@@ -55,7 +56,7 @@ def train():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"\n🖥️ Using device: {device}")
     
-    vocab_size = 50000
+    vocab_size = tokenization.tokenizer.vocab_size
     model = RubyMini(vocab_size).to(device)
 
     total_params, trainable_params = count_model_params(model)

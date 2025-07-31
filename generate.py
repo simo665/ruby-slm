@@ -4,7 +4,7 @@ from utils import tokenization
 import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-vocab_size = 50000  # same as training
+vocab_size = tokenization.tokenizer.vocab_size 
 model = RubyMini(vocab_size).to(device)
 model.load_state_dict(torch.load("weight_data/ruby_mini4_epoch_1.pth", map_location=device))
 model.eval()
@@ -57,7 +57,7 @@ def generate_text(model, start_tokens, max_length=100, top_k=50, top_p=1.0, temp
     
     for _ in range(max_length):
         # Use last 128 tokens as context (or whatever your model's max context is)
-        input_ids = torch.tensor([generated[-128:]], dtype=torch.long).to(device)
+        input_ids = torch.tensor([generated[-512:]], dtype=torch.long).to(device)
         
         # Check if input is empty
         if input_ids.size(1) == 0:
@@ -86,6 +86,11 @@ def generate_text(model, start_tokens, max_length=100, top_k=50, top_p=1.0, temp
         # Sample from the filtered distribution
         probabilities = F.softmax(last_token_logits, dim=-1)
         next_token_id = torch.multinomial(probabilities, 1).item()
+
+        # Stop if EOS token is generated
+        if next_token_id == tokenization.tokenizer.eos_token_id:
+            break
+
         
         generated.append(next_token_id)
         
